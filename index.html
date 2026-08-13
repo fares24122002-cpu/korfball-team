@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F6F5C">
+<title>Korfball Team Manager</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+:root{
+  --pitch:#1F6F5C; --pitch-dark:#154F42;
+  --korf:#E8622C; --korf-dark:#C94F20;
+  --chalk:#F5F6F1; --card:#FFFFFF;
+  --ink:#16211F; --ink-soft:#5C6D68; --line:#DEE3DD;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Inter',sans-serif;color:var(--ink);background:var(--chalk);
+  padding-bottom:env(safe-area-inset-bottom);}
+.disp{font-family:'Space Grotesk',sans-serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+.zone-split{background:linear-gradient(180deg,var(--pitch) 0 50%,var(--korf) 50% 100%);}
+header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:var(--chalk);z-index:5;}
+header input{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;border:none;
+  background:transparent;outline:none;width:100%;color:var(--ink);}
+header .sub{font-size:11px;color:var(--ink-soft);}
+nav{display:flex;overflow-x:auto;gap:4px;padding:8px 10px;border-bottom:1px solid var(--line);
+  position:sticky;top:62px;background:var(--chalk);z-index:5;}
+nav button{border:none;background:none;font-family:'Inter';font-weight:500;font-size:13px;
+  padding:8px 12px;border-radius:10px;color:var(--ink-soft);white-space:nowrap;}
+nav button.active{background:var(--pitch);color:#fff;}
+main{padding:14px 16px 60px;max-width:720px;margin:0 auto;}
+h2.title{font-family:'Space Grotesk';font-size:19px;margin:0 0 2px;}
+.subtitle{font-size:13px;color:var(--ink-soft);margin-bottom:14px;}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;}
+.btn{border:none;border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px;font-family:'Inter';cursor:pointer;}
+.btn-primary{background:var(--pitch);color:#fff;}
+.btn-ghost{background:none;color:var(--ink-soft);}
+.btn-danger{background:none;color:#8A3B3B;}
+.input, select, textarea{border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;
+  width:100%;font-family:'Inter';background:#fff;color:var(--ink);}
+.row{display:flex;gap:8px;flex-wrap:wrap;}
+.row > *{flex:1;min-width:110px;}
+.badge{display:inline-flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';
+  background:var(--ink);color:var(--chalk);border-radius:999px;width:30px;height:30px;font-size:12px;font-weight:600;}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;}
+.pill-on{background:#E3F1EC;color:var(--pitch-dark);}
+.pill-off{background:#F1E3E3;color:#8A3B3B;}
+.list-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
+.list-item:last-child{border-bottom:none;}
+.empty{text-align:center;color:var(--ink-soft);font-size:13px;padding:30px 10px;}
+.icon-btn{background:none;border:none;color:var(--ink-soft);padding:5px;cursor:pointer;font-size:14px;}
+.chip{display:inline-flex;align-items:center;padding:6px 11px;border-radius:999px;font-size:12px;
+  font-weight:600;border:1px solid var(--line);color:var(--ink-soft);cursor:pointer;margin:3px;}
+.chip.on{background:var(--pitch);border-color:var(--pitch);color:#fff;}
+.divider{height:1px;background:var(--line);margin:12px 0;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;}
+.stat-num{font-family:'IBM Plex Mono';font-size:24px;font-weight:600;}
+.bar-bg{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--pitch);}
+.lineup-zone h4{font-family:'Space Grotesk';font-size:13px;margin:0 0 8px;display:flex;align-items:center;gap:6px;}
+.lineup-slot-label{font-size:11px;color:var(--ink-soft);margin-bottom:2px;}
+.valid-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
+.valid-yes{background:#E3F1EC;color:var(--pitch-dark);}
+.valid-no{background:#F6EADD;color:#8A5A20;}
+.field-label{font-size:11px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;text-transform:uppercase;letter-spacing:.02em;}
+</style>
+</head>
+<body>
+<header>
+  <div class="zone-split" style="width:5px;height:34px;border-radius:3px;"></div>
+  <div style="flex:1;">
+    <input id="teamNameInput" value="My Korfball Club">
+    <div class="sub" id="headerSub">Korfball squad</div>
+  </div>
+</header>
+<nav id="tabNav"></nav>
+<main id="app"></main>
+
+<script>
+/* ---------- storage ---------- */
+const STORE_KEY = "kfm-local-data-v1";
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { teamName:"My Korfball Club", players:[], training:[], matches:[], tasks:[] };
+}
+function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+let state = loadState();
+
+/* ---------- helpers ---------- */
+const uid = () => Math.random().toString(36).slice(2,10);
+const todayISO = () => new Date().toISOString().slice(0,10);
+function fmtDate(iso){
+  return new Date(iso+"T00:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+}
+function activePlayers(){ return state.players.filter(p=>p.active); }
+function playerById(id){ return state.players.find(p=>p.id===id); }
+
+let currentTab = "squad";
+let openId = {training:null, matches:null};
+let formState = null; // holds whatever form is open, tagged by .kind
+
+/* ---------- nav ---------- */
+const TABS = [
+  {id:"squad", label:"Squad"},
+  {id:"training", label:"Training"},
+  {id:"matches", label:"Matches"},
+  {id:"tasks", label:"Tasks"},
+  {id:"stats", label:"Stats"},
+];
+function renderNav(){
+  const nav = document.getElementById("tabNav");
+  nav.innerHTML = TABS.map(t=>`<button data-tab="${t.id}" class="${currentTab===t.id?'active':''}">${t.label}</button>`).join("");
+  nav.querySelectorAll("button").forEach(b=>{
+    b.onclick = ()=>{ currentTab=b.dataset.tab; formState=null; render(); };
+  });
+}
+
+function render(){
+  document.getElementById("teamNameInput").value = state.teamName;
+  document.getElementById("headerSub").textContent = `Korfball squad · ${state.players.length} people`;
+  renderNav();
+  const app = document.getElementById("app");
+  if(currentTab==="squad") app.innerHTML = squadView();
+  else if(currentTab==="training") app.innerHTML = trainingView();
+  else if(currentTab==="matches") app.innerHTML = matchesView();
+  else if(currentTab==="tasks") app.innerHTML = tasksView();
+  else if(currentTab==="stats") app.innerHTML = statsView();
+  bindEvents();
+  saveState();
+}
+
+document.getElementById("teamNameInput").addEventListener("input", e=>{
+  state.teamName = e.target.value; saveState();
+  document.getElementById("headerSub").textContent = `Korfball squad · ${state.players.length} people`;
+});
+
+/* =========================================================
+   SQUAD
+========================================================= */
+function squadView(){
+  const f = formState && formState.kind==="player" ? formState : null;
+  return `
+  <div class="section-head">
+    <div><h2 class="title">Squad</h2><div class="subtitle">${activePlayers().length} active of ${state.players.length}</div></div>
+    <button class="btn btn-primary" id="addPlayerBtn">+ Add person</button>
+  </div>
+  ${f ? playerForm(f) : ""}
+  ${state.players.length===0 ? `<div class="empty">No one on the roster yet. Add your first player or staff member.</div>` :
+    `<div class="card" style="padding:0;">` + state.players.map(p=>`
+      <div class="list-item" style="padding:12px 14px;">
+        <div class="badge">${p.number||"–"}</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:14px;">${escapeHtml(p.name)} <span class="mono" style="color:var(--ink-soft);font-size:12px;">· ${p.gender}</span></div>
+          <div style="font-size:12px;color:var(--ink-soft);">${p.position} · ${p.role}</div>
+        </div>
+        <span class="pill ${p.active?'pill-on':'pill-off'}" data-toggle-active="${p.id}" style="cursor:pointer;">${p.active?'Active':'Inactive'}</span>
+        <button class="icon-btn" data-edit-player="${p.id}">✎</button>
+        <button class="icon-btn" data-del-player="${p.id}">🗑</button>
+      </div>
+    `).join("") + `</div>`
+  }`;
+}
+function playerForm(f){
+  return `
+  <div class="card">
+    <div class="row">
+      <input class="input" id="pf-name" placeholder="Full name" value="${escapeAttr(f.name||"")}">
+      <input class="input" id="pf-number" placeholder="No." value="${escapeAttr(f.number||"")}">
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <select id="pf-gender">
+        <option value="M" ${f.gender==="M"?"selected":""}>M</option>
+        <option value="F" ${f.gender==="F"?"selected":""}>F</option>
+      </select>
+      <select id="pf-position">
+        ${["Attack","Defense","Both"].map(p=>`<option ${f.position===p?"selected":""}>${p}</option>`).join("")}
+      </select>
+      <select id="pf-role">
+        ${["Player","Coach","Staff"].map(r=>`<option ${f.role===r?"selected":""}>${r}</option>`).join("")}
+      </select>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn btn-primary" id="pf-save">Save</button>
+      <button class="btn btn-ghost" id="pf-cancel">Cancel</button>
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   TRAINING
+========================================================= */
+function trainingView(){
+  const f = formState && formState.kind==="training" ? formState : null;
+  const sorted = [...state.training].sort((a,b)=>b.date.localeCompare(a.date));
+  return `
+  <div class="section-head">
+    <div><h2 class="title">Training</h2><div class="subtitle">${state.training.length} sessions planned</div></div>
+    <button class="btn btn-primary" id="addTrainingBtn">+ New session</button>
+  </div>
+  ${f ? trainingForm(f) : ""}
+  ${sorted.length===0 ? `<div class="empty">No training sessions yet. Plan your first one.</div>` :
+    sorted.map(s=>{
+      const open = openId.training===s.id;
+      return `<div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" data-open-training="${s.id}">
+          <div>
+            <div style="font-weight:600;font-size:14px;">${fmtDate(s.date)} · ${s.time}</div>
+            <div style="font-size:12px;color:var(--ink-soft);">${escapeHtml(s.focus||"General training")} · ${s.attendeeIds.length} attending</div>
+          </div>
+          <div>
+            <button class="icon-btn" data-edit-training="${s.id}">✎</button>
+            <button class="icon-btn" data-del-training="${s.id}">🗑</button>
+          </div>
+        </div>
+        ${open ? `
+          <div class="divider"></div>
+          ${s.notes ? `<div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">${escapeHtml(s.notes)}</div>` : ""}
+          <div class="field-label">Attendance</div>
+          <div>
+          ${activePlayers().length===0 ? `<span style="font-size:12px;color:var(--ink-soft);">Add active players in the Squad tab first.</span>` :
+            activePlayers().map(p=>`<span class="chip ${s.attendeeIds.includes(p.id)?'on':''}" data-toggle-attend="${s.id}|${p.id}">${escapeHtml(p.name)}</span>`).join("")}
+          </div>` : ""}
+      </div>`;
+    }).join("")
+  }`;
+}
+function trainingForm(f){
+  return `
+  <div class="card">
+    <div class="row">
+      <input type="date" class="input" id="tf-date" value="${f.date}">
+      <input type="time" class="input" id="tf-time" value="${f.time}">
+    </div>
+    <input class="input" style="margin-top:8px;" id="tf-focus" placeholder="Focus (e.g. shooting drills)" value="${escapeAttr(f.focus||"")}">
+    <textarea class="input" style="margin-top:8px;" id="tf-notes" rows="2" placeholder="Notes">${escapeHtml(f.notes||"")}</textarea>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn btn-primary" id="tf-save">Save</button>
+      <button class="btn btn-ghost" id="tf-cancel">Cancel</button>
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   MATCHES  (+ lineup builder)
+========================================================= */
+function matchesView(){
+  const f = formState && formState.kind==="match" ? formState : null;
+  const sorted = [...state.matches].sort((a,b)=>b.date.localeCompare(a.date));
+  return `
+  <div class="section-head">
+    <div><h2 class="title">Matches</h2><div class="subtitle">${state.matches.length} scheduled or played</div></div>
+    <button class="btn btn-primary" id="addMatchBtn">+ Schedule match</button>
+  </div>
+  ${f ? matchForm(f) : ""}
+  ${sorted.length===0 ? `<div class="empty">No matches yet. Schedule your first fixture.</div>` :
+    sorted.map(m=>{
+      const open = openId.matches===m.id;
+      const played = m.ourScore!=="" && m.oppScore!=="" && m.ourScore!=null && m.oppScore!=null;
+      return `<div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" data-open-match="${m.id}">
+          <div>
+            <div style="font-weight:600;font-size:14px;">${fmtDate(m.date)} · vs ${escapeHtml(m.opponent)} <span style="font-weight:400;font-size:12px;color:var(--ink-soft);">(${m.homeAway})</span></div>
+            <div class="mono" style="font-size:12px;color:var(--ink-soft);">${played ? `${m.ourScore} – ${m.oppScore}` : "Not played yet"}</div>
+          </div>
+          <div>
+            <button class="icon-btn" data-edit-match="${m.id}">✎</button>
+            <button class="icon-btn" data-del-match="${m.id}">🗑</button>
+          </div>
+        </div>
+        ${open ? matchDetail(m) : ""}
+      </div>`;
+    }).join("")
+  }`;
+}
+function matchForm(f){
+  return `
+  <div class="card">
+    <div class="row">
+      <input type="date" class="input" id="mf-date" value="${f.date}">
+      <input type="time" class="input" id="mf-time" value="${f.time}">
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <select id="mf-homeaway">
+        <option ${f.homeAway==="Home"?"selected":""}>Home</option>
+        <option ${f.homeAway==="Away"?"selected":""}>Away</option>
+      </select>
+      <input class="input" id="mf-opponent" placeholder="Opponent" value="${escapeAttr(f.opponent||"")}">
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <input class="input" id="mf-ourscore" type="number" placeholder="Our score" value="${escapeAttr(f.ourScore??"")}">
+      <input class="input" id="mf-oppscore" type="number" placeholder="Opponent score" value="${escapeAttr(f.oppScore??"")}">
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn btn-primary" id="mf-save">Save</button>
+      <button class="btn btn-ghost" id="mf-cancel">Cancel</button>
+    </div>
+  </div>`;
+}
+function ensureLineup(m){
+  if(!m.lineup) m.lineup = { attackM:["",""], attackF:["",""], defenseM:["",""], defenseF:["",""] };
+  return m.lineup;
+}
+function usedIds(lineup, exceptKey){
+  const all = [];
+  for(const k of ["attackM","attackF","defenseM","defenseF"]){
+    lineup[k].forEach((id,i)=>{ if(id && `${k}|${i}`!==exceptKey) all.push(id); });
+  }
+  return all;
+}
+function lineupZoneHtml(m, zoneLabel, genderKeyM, genderKeyF){
+  const lu = ensureLineup(m);
+  function slotSelect(key, idx, gender){
+    const used = usedIds(lu, `${key}|${idx}`);
+    const options = activePlayers().filter(p=>p.gender===gender && !used.includes(p.id));
+    const current = lu[key][idx];
+    return `<select data-lineup-slot="${m.id}|${key}|${idx}">
+      <option value="">— empty —</option>
+      ${options.map(p=>`<option value="${p.id}" ${current===p.id?"selected":""}>${escapeHtml(p.name)}</option>`).join("")}
+      ${current && !options.find(o=>o.id===current) && playerById(current) ? `<option value="${current}" selected>${escapeHtml(playerById(current).name)}</option>` : ""}
+    </select>`;
+  }
+  return `
+  <div class="lineup-zone" style="flex:1;min-width:220px;">
+    <h4>${zoneLabel}</h4>
+    <div class="lineup-slot-label">Men</div>
+    <div class="row">${slotSelect(genderKeyM,0,"M")}${slotSelect(genderKeyM,1,"M")}</div>
+    <div class="lineup-slot-label" style="margin-top:6px;">Women</div>
+    <div class="row">${slotSelect(genderKeyF,0,"F")}${slotSelect(genderKeyF,1,"F")}</div>
+  </div>`;
+}
+function matchDetail(m){
+  const lu = ensureLineup(m);
+  const filled = ["attackM","attackF","defenseM","defenseF"].reduce((n,k)=>n+lu[k].filter(Boolean).length,0);
+  const allIds = usedIds(lu, "__none__");
+  const noDupes = new Set(allIds).size === allIds.length;
+  const valid = filled===8 && noDupes;
+  return `
+  <div class="divider"></div>
+  <div class="section-head" style="margin-bottom:8px;">
+    <div class="field-label" style="margin:0;">Lineup (2M + 2F per zone)</div>
+    <span class="valid-badge ${valid?'valid-yes':'valid-no'}">${valid ? "Valid 8" : `${filled}/8 set`}</span>
+  </div>
+  <div class="row" style="align-items:flex-start;">
+    ${lineupZoneHtml(m, "Attack", "attackM", "attackF")}
+    ${lineupZoneHtml(m, "Defense", "defenseM", "defenseF")}
+  </div>
+  <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">Zones swap after every 2 goals in a real match — this sets your starting lineup.</div>
+  <div class="divider"></div>
+  <div class="field-label">Goal scorers</div>
+  ${activePlayers().length===0 ? `<span style="font-size:12px;color:var(--ink-soft);">Add active players in the Squad tab first.</span>` :
+    activePlayers().map(p=>{
+      const rec = m.scorers.find(s=>s.playerId===p.id);
+      return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div style="width:120px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</div>
+        <input class="input mono" style="width:70px;" type="number" min="0" value="${rec?rec.goals:0}" data-goal-input="${m.id}|${p.id}">
+      </div>`;
+    }).join("")
+  }`;
+}
+
+/* =========================================================
+   TASKS
+========================================================= */
+function tasksView(){
+  const f = formState && formState.kind==="task" ? formState : null;
+  const sorted = [...state.tasks].sort((a,b)=> (a.done-b.done) || (a.dueDate||"").localeCompare(b.dueDate||""));
+  return `
+  <div class="section-head">
+    <div><h2 class="title">Tasks</h2><div class="subtitle">${state.tasks.filter(t=>!t.done).length} open</div></div>
+    <button class="btn btn-primary" id="addTaskBtn">+ Add task</button>
+  </div>
+  ${f ? taskForm(f) : ""}
+  ${sorted.length===0 ? `<div class="empty">No tasks yet. Add jobs like kit orders or referee bookings.</div>` :
+    `<div class="card" style="padding:0;">` + sorted.map(t=>{
+      const assignee = playerById(t.assigneeId);
+      return `<div class="list-item" style="padding:12px 14px;">
+        <button class="icon-btn" style="border:1px solid ${t.done?'var(--pitch)':'var(--line)'};background:${t.done?'var(--pitch)':'#fff'};color:#fff;width:22px;height:22px;border-radius:6px;" data-toggle-task="${t.id}">${t.done?"✓":""}</button>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:500;${t.done?'text-decoration:line-through;color:var(--ink-soft);':''}">${escapeHtml(t.title)}</div>
+          <div style="font-size:12px;color:var(--ink-soft);">${assignee?escapeHtml(assignee.name):"Unassigned"}${t.dueDate?` · due ${fmtDate(t.dueDate)}`:""}</div>
+        </div>
+        <button class="icon-btn" data-edit-task="${t.id}">✎</button>
+        <button class="icon-btn" data-del-task="${t.id}">🗑</button>
+      </div>`;
+    }).join("") + `</div>`
+  }`;
+}
+function taskForm(f){
+  return `
+  <div class="card">
+    <input class="input" id="tkf-title" placeholder="Task" value="${escapeAttr(f.title||"")}">
+    <div class="row" style="margin-top:8px;">
+      <select id="tkf-assignee">
+        <option value="">Unassigned</option>
+        ${state.players.map(p=>`<option value="${p.id}" ${f.assigneeId===p.id?"selected":""}>${escapeHtml(p.name)}</option>`).join("")}
+      </select>
+      <input type="date" class="input" id="tkf-due" value="${f.dueDate||""}">
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn btn-primary" id="tkf-save">Save</button>
+      <button class="btn btn-ghost" id="tkf-cancel">Cancel</button>
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   STATS
+========================================================= */
+function statsView(){
+  const goalsByPlayer = {};
+  state.matches.forEach(m=>m.scorers.forEach(s=>{ goalsByPlayer[s.playerId]=(goalsByPlayer[s.playerId]||0)+(s.goals||0); }));
+  const topScorers = Object.entries(goalsByPlayer)
+    .map(([id,goals])=>({player:playerById(id),goals}))
+    .filter(r=>r.player && r.goals>0).sort((a,b)=>b.goals-a.goals).slice(0,8);
+
+  const att = {};
+  state.players.forEach(p=>att[p.id]={present:0,total:state.training.length});
+  state.training.forEach(s=>s.attendeeIds.forEach(id=>{ if(att[id]) att[id].present++; }));
+
+  const played = state.matches.filter(m=>m.ourScore!=="" && m.oppScore!=="" && m.ourScore!=null && m.oppScore!=null);
+  const rec = played.reduce((acc,m)=>{
+    const us=parseInt(m.ourScore,10), them=parseInt(m.oppScore,10);
+    if(us>them) acc.w++; else if(us<them) acc.l++; else acc.d++;
+    return acc;
+  },{w:0,d:0,l:0});
+
+  return `
+  <h2 class="title">Stats</h2>
+  <div class="subtitle">Season overview</div>
+  <div class="stat-grid">
+    <div class="card"><div class="field-label">Match record</div><div class="stat-num">${rec.w}–${rec.d}–${rec.l}</div><div style="font-size:12px;color:var(--ink-soft);">W–D–L across ${played.length} played</div></div>
+    <div class="card"><div class="field-label">Squad size</div><div class="stat-num">${activePlayers().length}</div><div style="font-size:12px;color:var(--ink-soft);">active of ${state.players.length} total</div></div>
+    <div class="card"><div class="field-label">Sessions run</div><div class="stat-num">${state.training.length}</div><div style="font-size:12px;color:var(--ink-soft);">training sessions logged</div></div>
+  </div>
+  <div class="card">
+    <div class="field-label">Top scorers</div>
+    ${topScorers.length===0 ? `<div style="font-size:13px;color:var(--ink-soft);">No goals recorded yet.</div>` :
+      topScorers.map((r,i)=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div class="mono" style="width:16px;font-size:12px;color:var(--ink-soft);">${i+1}</div>
+        <div style="flex:1;font-size:14px;font-weight:500;">${escapeHtml(r.player.name)}</div>
+        <div class="mono" style="font-weight:700;color:var(--korf-dark);">${r.goals}</div>
+      </div>`).join("")}
+  </div>
+  <div class="card">
+    <div class="field-label">Training attendance</div>
+    ${state.training.length===0 ? `<div style="font-size:13px;color:var(--ink-soft);">No sessions logged yet.</div>` :
+      activePlayers().map(p=>{
+        const a = att[p.id]; const pct = a.total ? Math.round(a.present/a.total*100) : 0;
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <div style="width:100px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;"></div></div>
+          <div class="mono" style="width:36px;text-align:right;font-size:12px;color:var(--ink-soft);">${pct}%</div>
+        </div>`;
+      }).join("")}
+  </div>`;
+}
+
+/* ---------- utils ---------- */
+function escapeHtml(s){ return String(s??"").replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s); }
+
+/* ---------- events ---------- */
+function bindEvents(){
+  // Squad
+  const addPlayerBtn = document.getElementById("addPlayerBtn");
+  if(addPlayerBtn) addPlayerBtn.onclick = ()=>{ formState={kind:"player",gender:"M",position:"Both",role:"Player"}; render(); };
+  document.querySelectorAll("[data-edit-player]").forEach(el=>el.onclick=()=>{
+    const p = playerById(el.dataset.editPlayer); formState={kind:"player",...p}; render();
+  });
+  document.querySelectorAll("[data-del-player]").forEach(el=>el.onclick=()=>{
+    state.players = state.players.filter(p=>p.id!==el.dataset.delPlayer); render();
+  });
+  document.querySelectorAll("[data-toggle-active]").forEach(el=>el.onclick=()=>{
+    const p = playerById(el.dataset.toggleActive); p.active=!p.active; render();
+  });
+  const pfSave = document.getElementById("pf-save");
+  if(pfSave) pfSave.onclick = ()=>{
+    const name = document.getElementById("pf-name").value.trim();
+    if(!name) return;
+    const obj = {
+      name, number: document.getElementById("pf-number").value,
+      gender: document.getElementById("pf-gender").value,
+      position: document.getElementById("pf-position").value,
+      role: document.getElementById("pf-role").value,
+    };
+    if(formState.id){
+      const i = state.players.findIndex(p=>p.id===formState.id);
+      state.players[i] = {...state.players[i], ...obj};
+    } else {
+      state.players.push({...obj, id:uid(), active:true});
+    }
+    formState=null; render();
+  };
+  const pfCancel = document.getElementById("pf-cancel");
+  if(pfCancel) pfCancel.onclick = ()=>{ formState=null; render(); };
+
+  // Training
+  const addTrainingBtn = document.getElementById("addTrainingBtn");
+  if(addTrainingBtn) addTrainingBtn.onclick = ()=>{ formState={kind:"training",date:todayISO(),time:"18:00",focus:"",notes:""}; render(); };
+  document.querySelectorAll("[data-open-training]").forEach(el=>el.onclick=()=>{
+    const id = el.dataset.openTraining; openId.training = openId.training===id?null:id; render();
+  });
+  document.querySelectorAll("[data-edit-training]").forEach(el=>el.onclick=(e)=>{
+    e.stopPropagation();
+    const s = state.training.find(s=>s.id===el.dataset.editTraining); formState={kind:"training",...s}; render();
+  });
+  document.querySelectorAll("[data-del-training]").forEach(el=>el.onclick=(e)=>{
+    e.stopPropagation();
+    state.training = state.training.filter(s=>s.id!==el.dataset.delTraining); render();
+  });
+  document.querySelectorAll("[data-toggle-attend]").forEach(el=>el.onclick=()=>{
+    const [sid,pid] = el.dataset.toggleAttend.split("|");
+    const s = state.training.find(s=>s.id===sid);
+    s.attendeeIds = s.attendeeIds.includes(pid) ? s.attendeeIds.filter(id=>id!==pid) : [...s.attendeeIds, pid];
+    render();
+  });
+  const tfSave = document.getElementById("tf-save");
+  if(tfSave) tfSave.onclick = ()=>{
+    const obj = {
+      date: document.getElementById("tf-date").value,
+      time: document.getElementById("tf-time").value,
+      focus: document.getElementById("tf-focus").value,
+      notes: document.getElementById("tf-notes").value,
+    };
+    if(!obj.date) return;
+    if(formState.id){
+      const i = state.training.findIndex(s=>s.id===formState.id);
+      state.training[i] = {...state.training[i], ...obj};
+    } else {
+      state.training.push({...obj, id:uid(), attendeeIds:[]});
+    }
+    formState=null; render();
+  };
+  const tfCancel = document.getElementById("tf-cancel");
+  if(tfCancel) tfCancel.onclick = ()=>{ formState=null; render(); };
+
+  // Matches
+  const addMatchBtn = document.getElementById("addMatchBtn");
+  if(addMatchBtn) addMatchBtn.onclick = ()=>{ formState={kind:"match",date:todayISO(),time:"14:00",homeAway:"Home",opponent:"",ourScore:"",oppScore:""}; render(); };
+  document.querySelectorAll("[data-open-match]").forEach(el=>el.onclick=()=>{
+    const id = el.dataset.openMatch; openId.matches = openId.matches===id?null:id; render();
+  });
+  document.querySelectorAll("[data-edit-match]").forEach(el=>el.onclick=(e)=>{
+    e.stopPropagation();
+    const m = state.matches.find(m=>m.id===el.dataset.editMatch); formState={kind:"match",...m}; render();
+  });
+  document.querySelectorAll("[data-del-match]").forEach(el=>el.onclick=(e)=>{
+    e.stopPropagation();
+    state.matches = state.matches.filter(m=>m.id!==el.dataset.delMatch); render();
+  });
+  document.querySelectorAll("[data-goal-input]").forEach(el=>{
+    el.onchange = ()=>{
+      const [mid,pid] = el.dataset.goalInput.split("|");
+      const m = state.matches.find(m=>m.id===mid);
+      const g = Math.max(0, parseInt(el.value||0,10));
+      const rec = m.scorers.find(s=>s.playerId===pid);
+      if(rec) rec.goals = g; else m.scorers.push({playerId:pid, goals:g});
+      saveState();
+    };
+  });
+  document.querySelectorAll("[data-lineup-slot]").forEach(el=>{
+    el.onchange = ()=>{
+      const [mid,key,idx] = el.dataset.lineupSlot.split("|");
+      const m = state.matches.find(m=>m.id===mid);
+      ensureLineup(m)[key][idx] = el.value;
+      render();
+    };
+  });
+  const mfSave = document.getElementById("mf-save");
+  if(mfSave) mfSave.onclick = ()=>{
+    const opponent = document.getElementById("mf-opponent").value.trim();
+    if(!opponent) return;
+    const obj = {
+      date: document.getElementById("mf-date").value,
+      time: document.getElementById("mf-time").value,
+      homeAway: document.getElementById("mf-homeaway").value,
+      opponent,
+      ourScore: document.getElementById("mf-ourscore").value,
+      oppScore: document.getElementById("mf-oppscore").value,
+    };
+    if(formState.id){
+      const i = state.matches.findIndex(m=>m.id===formState.id);
+      state.matches[i] = {...state.matches[i], ...obj};
+    } else {
+      state.matches.push({...obj, id:uid(), scorers:[], lineup:null});
+    }
+    formState=null; render();
+  };
+  const mfCancel = document.getElementById("mf-cancel");
+  if(mfCancel) mfCancel.onclick = ()=>{ formState=null; render(); };
+
+  // Tasks
+  const addTaskBtn = document.getElementById("addTaskBtn");
+  if(addTaskBtn) addTaskBtn.onclick = ()=>{ formState={kind:"task",title:"",assigneeId:"",dueDate:""}; render(); };
+  document.querySelectorAll("[data-toggle-task]").forEach(el=>el.onclick=()=>{
+    const t = state.tasks.find(t=>t.id===el.dataset.toggleTask); t.done=!t.done; render();
+  });
+  document.querySelectorAll("[data-edit-task]").forEach(el=>el.onclick=()=>{
+    const t = state.tasks.find(t=>t.id===el.dataset.editTask); formState={kind:"task",...t}; render();
+  });
+  document.querySelectorAll("[data-del-task]").forEach(el=>el.onclick=()=>{
+    state.tasks = state.tasks.filter(t=>t.id!==el.dataset.delTask); render();
+  });
+  const tkfSave = document.getElementById("tkf-save");
+  if(tkfSave) tkfSave.onclick = ()=>{
+    const title = document.getElementById("tkf-title").value.trim();
+    if(!title) return;
+    const obj = { title, assigneeId: document.getElementById("tkf-assignee").value, dueDate: document.getElementById("tkf-due").value };
+    if(formState.id){
+      const i = state.tasks.findIndex(t=>t.id===formState.id);
+      state.tasks[i] = {...state.tasks[i], ...obj};
+    } else {
+      state.tasks.push({...obj, id:uid(), done:false});
+    }
+    formState=null; render();
+  };
+  const tkfCancel = document.getElementById("tkf-cancel");
+  if(tkfCancel) tkfCancel.onclick = ()=>{ formState=null; render(); };
+}
+
+/* ---------- boot ---------- */
+render();
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
+}
+</script>
+</body>
+</html>
