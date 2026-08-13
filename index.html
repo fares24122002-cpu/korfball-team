@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1F6F5C">
-<title>Korfball Team Manager</title>
+<meta name="theme-color" content="#07203F">
+<title>Lynx Korfball Club</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 :root{
-  --pitch:#1F6F5C; --pitch-dark:#154F42;
-  --korf:#E8622C; --korf-dark:#C94F20;
-  --chalk:#F5F6F1; --card:#FFFFFF;
-  --ink:#16211F; --ink-soft:#5C6D68; --line:#DEE3DD;
+  --pitch:#07203F; --pitch-dark:#02000D;
+  --korf:#A65E46; --korf-dark:#84492F;
+  --chalk:#F5EFE8; --card:#FFFFFF;
+  --ink:#02000D; --ink-soft:#5A6472; --line:#E3D9CE;
+  --sand:#D9AA90;
 }
 *{box-sizing:border-box;}
 body{margin:0;font-family:'Inter',sans-serif;color:var(--ink);background:var(--chalk);
@@ -48,7 +49,7 @@ h2.title{font-family:'Space Grotesk';font-size:19px;margin:0 0 2px;}
 .badge{display:inline-flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';
   background:var(--ink);color:var(--chalk);border-radius:999px;width:30px;height:30px;font-size:12px;font-weight:600;}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;}
-.pill-on{background:#E3F1EC;color:var(--pitch-dark);}
+.pill-on{background:#E3E9F0;color:var(--pitch);}
 .pill-off{background:#F1E3E3;color:#8A3B3B;}
 .list-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
 .list-item:last-child{border-bottom:none;}
@@ -65,8 +66,8 @@ h2.title{font-family:'Space Grotesk';font-size:19px;margin:0 0 2px;}
 .lineup-zone h4{font-family:'Space Grotesk';font-size:13px;margin:0 0 8px;display:flex;align-items:center;gap:6px;}
 .lineup-slot-label{font-size:11px;color:var(--ink-soft);margin-bottom:2px;}
 .valid-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
-.valid-yes{background:#E3F1EC;color:var(--pitch-dark);}
-.valid-no{background:#F6EADD;color:#8A5A20;}
+.valid-yes{background:#E3E9F0;color:var(--pitch);}
+.valid-no{background:#F0E1D4;color:var(--korf-dark);}
 .field-label{font-size:11px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;text-transform:uppercase;letter-spacing:.02em;}
 </style>
 </head>
@@ -74,7 +75,7 @@ h2.title{font-family:'Space Grotesk';font-size:19px;margin:0 0 2px;}
 <header>
   <div class="zone-split" style="width:5px;height:34px;border-radius:3px;"></div>
   <div style="flex:1;">
-    <input id="teamNameInput" value="My Korfball Club">
+    <input id="teamNameInput" value="Lynx Korfball Club">
     <div class="sub" id="headerSub">Korfball squad</div>
   </div>
 </header>
@@ -89,7 +90,7 @@ function loadState(){
     const raw = localStorage.getItem(STORE_KEY);
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  return { teamName:"My Korfball Club", players:[], training:[], matches:[], tasks:[] };
+  return { teamName:"Lynx Korfball Club", players:[], training:[], matches:[], tasks:[] };
 }
 function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 let state = loadState();
